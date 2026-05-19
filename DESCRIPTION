@@ -18,3 +18,5 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 8.0.0
 Imports: 
     magrittr
+URL: https://github.com/dobengjhu/antable
+BugReports: https://github.com/dobengjhu/antable/issues
