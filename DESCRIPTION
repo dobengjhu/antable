@@ -1,16 +1,16 @@
 Package: antable
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Statistical Inference for 2x2 Contigency Tables
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
+      "Daniel", "Obeng",
+      email = "dobeng1@jhu.edu",
       role = c("aut", "cre")
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
+Description: Estimate common measures of association for binary exposures and
+  outcomes using data.frames and/or tibbles.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
