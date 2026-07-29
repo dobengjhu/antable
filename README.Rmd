@@ -1,0 +1,58 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# antable
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of antable is to ...
+
+## Installation
+
+You can install the development version of antable from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
+pak::pak("dobengjhu/antable")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+data <- tibble::tibble(
+  sex = c("Male", "Female")[rbinom(100, 1, 0.52) + 1],
+  disease = c("Sick", "Cured")[rbinom(100, 1, 0.2) + 1]
+)
+
+library(antable)
+result <- twobytwo(study_tbl = data,
+                   exposure = "sex == 'Female'",
+                   outcome = "disease == 'Cured'",
+                   test_method = "chisq")
+summary(result)
+```
+
+Sometimes variable values are not ordered in a manner that aligns with the research question of interest. For example, in the scenario above, R will automatically treat `Male` as the exposed group and `Sick` as the outcome of interest because they are each the "highest" value of the respective variables. If we were actually interested in treat females as the exposed group and patients who were cured as cases, we change the manner in which we define `exposure` and `outcome` and provide explicit definition using the general form `"var_name == var_level"`:
+
+```{r}
+result <- twobytwo(study_tbl = data,
+                   exposure = "sex == 'Female'",
+                   outcome = "disease == 'Cured'",
+                   test_method = "chisq")
+summary(result)
+```
