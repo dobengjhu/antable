@@ -3,17 +3,27 @@
 \name{summary.anthill}
 \alias{summary.anthill}
 \alias{print.summary.anthill}
-\title{Title}
+\title{Summarizing contingency table analysis results}
 \usage{
 \method{summary}{anthill}(object, ...)
 
 \method{print}{summary.anthill}(x, ...)
 }
+\arguments{
+\item{object}{An object of class "anthill", usually a result of a call to \code{\link[=twobytwo]{twobytwo()}}.}
+
+\item{...}{Further arguments passed to or from other methods.}
+
+\item{x}{An object of class "summary.anthill", usually, a result of a call to \code{summary.anthill}.}
+}
+\value{
+The function summary.anthill returns the list of summary statistics given in \code{object} (refer to \code{\link[=twobytwo]{twobytwo()}} for more details)
+}
 \description{
-Title
+Summarizing contingency table analysis results
 }
 \section{Methods (by generic)}{
 \itemize{
-\item \code{print(summary.anthill)}: Print the summary of two by two analysis
+\item \code{print(summary.anthill)}: Print the summary of contingency table analysis
 
 }}

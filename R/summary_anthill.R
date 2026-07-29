@@ -1,12 +1,11 @@
-#' Title
+#' Summarizing contingency table analysis results
 #'
-#' @param object
-#' @param ...
+#' @param object An object of class "anthill", usually a result of a call to [twobytwo()].
+#' @param ... Further arguments passed to or from other methods.
 #'
-#' @returns
-#' @export
+#' @returns The function summary.anthill returns the list of summary statistics given in `object` (refer to [twobytwo()] for more details)
 #'
-#' @examples
+#' @exportS3Method
 summary.anthill <- function(object,
                             ...) {
 
@@ -19,12 +18,12 @@ summary.anthill <- function(object,
   summary_list
 }
 
-#' @describeIn summary.anthill Print the summary of two by two analysis
+#' @describeIn summary.anthill Print the summary of contingency table analysis
 #'
-#' @param x
-#' @param ...
+#' @param x An object of class "summary.anthill", usually, a result of a call to `summary.anthill`.
+#' @param ... Further arguments passed to or from other methods.
 #'
-#' @export
+#' @exportS3Method
 print.summary.anthill <- function(x,
                                   ...) {
   dots <- list(...)
@@ -35,7 +34,7 @@ print.summary.anthill <- function(x,
     digits = max(3L, getOption("digits") - 3L)
   }
 
-  ci_method <- stringr::str_to_title(x$ci_method)
+  ci_method <- tools::toTitleCase(x$ci_method)
 
   # ── helpers ────────────────────────────────────────────────────────────────
 

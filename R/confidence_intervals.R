@@ -1,3 +1,11 @@
+#' Calculate estimate and confidence interval for single proportion
+#'
+#' @inheritParams twobytwo ci_method alpha
+#' @param attr_bin A logical vector
+#'
+#' @returns A list containing:
+#'    - `p_hat`: The estimated proportion of `attr_bin` that is `TRUE`
+#'    - `p_hat_ci`: The 100 * (1 - `alpha`)% confidence interval for `p_hat` using `ci_method`
 onesample_ci <- function(attr_bin,
                          ci_method,
                          alpha) {
@@ -34,6 +42,12 @@ onesample_ci <- function(attr_bin,
   )
 }
 
+#' Calculate estimates and confidence interval for risk difference, risk ratio, and odds ratio
+#'
+#' @inheritParams twobytwo alpha
+#' @param ctable A 2 x 2 `table` of counts.
+#'
+#' @returns A data.frame summarizing the risk difference, risk ratio, and odds ratio comparing the conditional proportions of events across the exposed and unexposed groups. Contains columns `measure` (the measure name), `estimate` (the point estimate), `lower_ci`, and `upper_ci` (the 100 * (1 - `alpha`)% confidence bounds).
 moa_ci <- function(ctable,
                    alpha) {
 
@@ -71,7 +85,7 @@ moa_ci <- function(ctable,
   or_lo <- exp(log(or) - z * or_se)
   or_hi <- exp(log(or) + z * or_se)
 
-  tibble::tibble(
+  data.frame(
     measure  = c("Risk Difference", "Risk Ratio", "Odds Ratio"),
     estimate = c(rd, rr, or),
     lower_ci = c(rd_lo, rr_lo, or_lo),

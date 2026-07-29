@@ -2,6 +2,9 @@
 
 S3method(print,summary.anthill)
 S3method(summary,anthill)
-export("%>%")
 export(twobytwo)
-importFrom(magrittr,"%>%")
+importFrom(stats,chisq.test)
+importFrom(stats,fisher.test)
+importFrom(stats,prop.test)
+importFrom(stats,qbeta)
+importFrom(stats,qnorm)

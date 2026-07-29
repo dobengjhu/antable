@@ -4,6 +4,7 @@
 #' then calculates relevant one-sample and two-sample summary statistics and
 #' inference artifacts.
 #'
+#' @importFrom stats qnorm qbeta fisher.test chisq.test prop.test
 #' @param study_tbl A data.frame or tbl containing the exposure and outcome variables to be analyzed, as specified in the `exposure` and `outcome` arguments.
 #' @param exposure A string specifying the binary exposure variable in `study_tbl`. By default, the variable's highest level is treated as "exposed". To specify a different level as "exposed," use the form `"var_name == var_level"`.
 #' @param outcome A string specifying the binary outcome variable in `study_tbl`. By default, the variable's highest level is treated as the "event". To specify a different level as the "event," use the form `"var_name == var_level"`.
@@ -49,7 +50,7 @@
 #'
 #' @export
 #'
-#' @example
+#' @example inst/examples/examples-twobytwo.R
 twobytwo <- function(study_tbl,
                      exposure,
                      outcome,
@@ -109,7 +110,7 @@ twobytwo <- function(study_tbl,
   cont_table_list$row_prop <- prop.table(cont_table, margin = 1)
   cont_table_list$col_prop <- prop.table(cont_table, margin = 2)
   cont_table_list$cell_prop <- prop.table(cont_table)
-
+  browser()
   p_exposure_list <- onesample_ci(
     exp_bin,
     ci_method,
