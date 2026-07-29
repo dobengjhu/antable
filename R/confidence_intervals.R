@@ -37,9 +37,6 @@ onesample_ci <- function(attr_bin,
 moa_ci <- function(ctable,
                    alpha) {
 
-  lower_sym <- rlang::sym(paste0("lower_", 100 * (1 - alpha)))
-  upper_sym <- rlang::sym(paste0("upper_", 100 * (1 - alpha)))
-
   a <- ctable[1,1]
   b <- ctable[1,2]
   c <- ctable[2,1]
@@ -77,7 +74,7 @@ moa_ci <- function(ctable,
   tibble::tibble(
     measure  = c("Risk Difference", "Risk Ratio", "Odds Ratio"),
     estimate = c(rd, rr, or),
-    !!lower_sym := c(rd_lo, rr_lo, or_lo),
-    !!upper_sym := c(rd_hi, rr_hi, or_hi)
+    lower_ci = c(rd_lo, rr_lo, or_lo),
+    upper_ci = c(rd_hi, rr_hi, or_hi)
   )
 }

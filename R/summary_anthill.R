@@ -10,10 +10,9 @@
 summary.anthill <- function(object,
                             ...) {
 
-  assertthat::assert_that(
-    "anthill" %in% class(object),
-    msg = "Object must be of class anthill"
-  )
+  if (!inherits(object, "anthill")) {
+    stop("Object must be of class anthill", call. = FALSE)
+  }
 
   summary_list <- object
   class(summary_list) <- "summary.anthill"
@@ -27,8 +26,7 @@ summary.anthill <- function(object,
 #'
 #' @export
 print.summary.anthill <- function(x,
-                                 ...) {
-  browser()
+                                  ...) {
   dots <- list(...)
 
   if ("digits" %in% names(dots)) {
@@ -41,163 +39,197 @@ print.summary.anthill <- function(x,
 
   # ── helpers ────────────────────────────────────────────────────────────────
 
-  rule  <- function(char = "\u2550", width = 54) cat(strrep(char, width), "\n")
-  hrule <- function(char = "\u2500", width = 54) cat(strrep(char, width), "\n")
-
-  section <- function(title) {
-    hrule()
-    cat(" ", title, "\n")
-    hrule()
-  }
-
-  # sig_label <- function(p) {
-  #   if (p < 0.001) "***"
-  #   else if (p < 0.01)  "**"
-  #   else if (p < 0.05)  "*"
-  #   else                "not significant"
-  # }
+  rule  <- function(char = "\u2550", width = 15) cat(strrep(char, width), "\n")
+  hrule <- function(char = "\u2500", width) cat(strrep(char, width), "\n")
 
   fmt <- function(x, d = digits) formatC(x, digits = d, format = "g")
+
+  section <- function(section_text) {
+    cat(section_text)
+    hrule(width = 54 - nchar(section_text))
+    cat("\n")
+  }
 
   # ── banner ─────────────────────────────────────────────────────────────────
 
   rule()
-  cat("  ANTABLE SUMMARY\n")
+  cat("ANTABLE SUMMARY\n")
   rule()
-  cat(sprintf("  Exposure : %-12s (n = %d)\n",
+  cat(sprintf("Exposure : %s (n = %d)\n",
               x$exposure_name, length(x$exposure)))
-  cat(sprintf("  Outcome  : %-12s (n = %d)\n",
+  cat(sprintf("Outcome  : %s (n = %d)\n",
               x$outcome_name,  length(x$outcome)))
   cat("\n")
 
   # ── contingency table ──────────────────────────────────────────────────────
+  section("CONTINGENCY TABLE")
 
-  section(" Contingency Table")
+  data      <- x$contingency_table$data
+  row_prop  <- x$contingency_table$row_prop
+  col_prop  <- x$contingency_table$col_prop
+  cell_prop <- x$contingency_table$cell_prop
 
-  ct       <- x$contingency_table          # matrix / table object
-  r_levels <- rownames(ct)                 # exposure levels
-  c_levels <- colnames(ct)                 # outcome levels
-  row_tots <- rowSums(ct)
-  col_tots <- colSums(ct)
-  grand    <- sum(ct)
+  row_var   <- names(dimnames(data))[1]
+  col_var   <- names(dimnames(data))[2]
+  row_names <- rownames(data)
+  col_names <- colnames(data)
+  nr <- nrow(data)
+  nc <- ncol(data)
 
-  # column widths: max of header label vs cell values (including totals)
-  col_w <- pmax(
-    nchar(c_levels),
-    apply(ct, 2L, function(v) max(nchar(as.character(v)))),
-    nchar(as.character(col_tots))
-  )
-  tot_w    <- max(nchar("Total"), nchar(as.character(grand)), nchar(as.character(row_tots)))
-  row_w    <- max(nchar(r_levels), nchar("Total"), nchar(x$exposure_name))
-  out_name <- x$outcome_name
+  row_totals  <- rowSums(data)
+  col_totals  <- colSums(data)
+  grand_total <- sum(data)
 
-  # outcome variable name spans outcome columns (not the Total column)
-  outcome_span_w <- sum(col_w) + (length(col_w) - 1L) * 2L   # cells + gaps
-  out_name_trunc <- substr(out_name, 1L, outcome_span_w)
-  out_name_pad   <- formatC(out_name_trunc,
-                            width  = outcome_span_w,
-                            flag   = "-")   # left-align within span
+  fmt_n   <- function(n) format(n, big.mark = ",")
+  fmt_pct <- function(p) sprintf(paste0("%.", 2, "f%%"), p * 100)
 
-  # header line 1: exposure var label | outcome var name (spanned) | (Total blank)
-  cat(sprintf("  %-*s  %s\n",
-              row_w, x$exposure_name,
-              paste0("\u2500\u2500 ", out_name_pad, " \u2500\u2500")))
+  cell_block <- function(i, j) {
+    c(fmt_n(data[i, j]),
+      fmt_pct(row_prop[i, j]),
+      fmt_pct(col_prop[i, j]),
+      fmt_pct(cell_prop[i, j]))
+  }
+  row_total_block <- function(i) c(fmt_n(row_totals[i]), "", "", "")
+  col_total_block <- function(j) c(fmt_n(col_totals[j]), "", "", "")
+  grand_block <- c(fmt_n(grand_total), "", "", "")
 
-  # header line 2: blank row stub | column labels | Total
-  col_heads <- paste(mapply(formatC, c_levels,
-                            width = col_w, MoreArgs = list(flag = " ")),
-                     collapse = "  ")
-  cat(sprintf("  %-*s  %s  %s\n",
-              row_w, "",
-              col_heads,
-              formatC("Total", width = tot_w, flag = "-")))
-
-  hrule()
-
-  # data rows
-  for (i in seq_along(r_levels)) {
-    cells <- paste(mapply(formatC, as.integer(ct[i, ]),
-                          width = col_w, MoreArgs = list(flag = " ")),
-                   collapse = "  ")
-    cat(sprintf("  %-*s  %s  %s\n",
-                row_w, r_levels[i],
-                cells,
-                formatC(as.integer(row_tots[i]), width = tot_w)))
+  blocks <- vector("list", (nr + 1) * (nc + 1))
+  dim(blocks) <- c(nr + 1, nc + 1)
+  for (i in seq_len(nr)) {
+    for (j in seq_len(nc)) {
+      blocks[[i, j]] <- cell_block(i, j)
+    }
   }
 
-  # total row
-  hrule()
-  tot_cells <- paste(mapply(formatC, as.integer(col_tots),
-                            width = col_w, MoreArgs = list(flag = " ")),
-                     collapse = "  ")
-  cat(sprintf("  %-*s  %s  %s\n",
-              row_w, "Total",
-              tot_cells,
-              formatC(as.integer(grand), width = tot_w)))
+  for (i in seq_len(nr)) {
+    blocks[[i, nc + 1]] <- row_total_block(i)
+  }
+
+  for (j in seq_len(nc)) {
+    blocks[[nr + 1, j]] <- col_total_block(j)
+  }
+
+  blocks[[nr + 1, nc + 1]] <- grand_block
+
+  col_labels <- c(col_names, "Total")
+  row_labels <- c(row_names, "Total")
+
+  col_width <- sapply(seq_len(nc + 1), function(j) {
+    w <- max(sapply(seq_len(nr + 1), function(i) max(nchar(blocks[[i, j]]))))
+    max(w, nchar(col_labels[j]))
+  })
+  row_label_width <- max(nchar(row_labels), nchar(row_var))
+
+  pad_label <- function(s, w) formatC(s, width = -w)  # left align
+  pad_val   <- function(s, w) formatC(s, width = w)   # right align
+  total_width <- row_label_width + sum(col_width) + length(col_width)
+
+  cat(strrep(" ", row_label_width), "  ", col_var, "\n", sep = "")
+  cat(pad_label(row_var, row_label_width), "  ",
+      paste(mapply(pad_val, col_labels, col_width), collapse = "  "),
+      "\n", sep = "")
+  cat(strrep("-", total_width + 1), "\n")
+
+  for (i in seq_len(nr + 1)) {
+    n_lines <- if (i <= nr) 4 else 1   # body rows get 4 lines, total row gets 1
+    for (line in seq_len(n_lines)) {
+      label <- if (line == 1) row_labels[i] else ""
+      vals  <- sapply(seq_len(nc + 1), function(j) pad_val(blocks[[i, j]][line], col_width[j]))
+      cat(pad_label(label, row_label_width), "  ", paste(vals, collapse = "  "), "\n", sep = "")
+    }
+    cat(strrep("-", total_width + 1), "\n")
+  }
+
+  cat("Key: count / row % / col % / cell %\n")
   cat("\n")
 
   # ── prevalences ───────────────────────────────────────────────────────────
+  section("PREVALENCE")
+  exposed <- levels(x$exposure)[2L]
+  event <- levels(x$outcome)[2L]
 
-  section(sprintf(" Prevalences                              Est.    [95%% CI] (%s)", ci_method))
+  prev_rowname <- paste0("P(",
+                         c(x$exposure_name, x$outcome_name),
+                         " = ",
+                         c(exposed, event),
+                         ")")
 
-  p_exp_ci <- get_ci(x$p_exposure_ci)
-  p_out_ci <- get_ci(x$p_outcome_ci)
+  p_exp_ci <- x$p_exposure_ci
+  p_out_ci <- x$p_outcome_ci
 
-  # reference levels (first level of each factor = reference used in table)
-  exp_ref <- levels(x$exposure)[2L]   # "Female" (second level per Levels: Male Female)
-  out_ref <- levels(x$outcome)[1L]    # "Sick"
+  prev_ci <- sprintf(paste0("[%.", digits,
+                            "f, %.", digits,
+                            "f]"),
+                     c(p_exp_ci[1], p_out_ci[1]),
+                     c(p_exp_ci[2], p_out_ci[2]))
 
-  cat(sprintf("  P(%-10s = %-8s)   %5.1f%%  [%5.1f, %5.1f]\n",
-              x$exposure_name, exp_ref,
-              x$p_exposure * 100,
-              p_exp_ci$lower_95 * 100,
-              p_exp_ci$upper_95 * 100))
+  prev_df <- data.frame(
+    est = round(c(x$p_exposure, x$p_outcome), digits),
+    ci = prev_ci
+  )
 
-  cat(sprintf("  P(%-10s = %-8s)   %5.1f%%  [%5.1f, %5.1f]\n",
-              x$outcome_name,  out_ref,
-              x$p_outcome * 100,
-              p_out_ci$lower_95 * 100,
-              p_out_ci$upper_95 * 100))
-  cat("\n")
+  rownames(prev_df) <- prev_rowname
+  colnames(prev_df) <- c("Estimate",
+                         paste0(ci_method, " ",
+                                round(100 * (1 - x$alpha)), "% CI"))
 
-  # ── association measures ──────────────────────────────────────────────────
+print(prev_df)
+cat("\n")
 
-  section(" Exposure-Outcome Association         Est.      [95% CI]")
+# ── association measures ──────────────────────────────────────────────────
 
-  for (i in seq_len(nrow(x$compare_ci))) {
-    row <- x$compare_ci[i, ]
-    cat(sprintf("  %-18s  %8s  [%8s, %8s]\n",
-                row$measure,
-                fmt(row$estimate),
-                fmt(row$lower_95),
-                fmt(row$upper_95)))
-  }
-  cat("\n")
+section("EXPOSURE-OUTCOME ASSOCIATION")
 
-  # ── test of association ───────────────────────────────────────────────────
+moa_ci <- sprintf(paste0("[%.", digits,
+                         "f, %.", digits,
+                         "f]"),
+                  x$compare_ci$lower_ci,
+                  x$compare_ci$upper_ci)
 
-  test_method <- if (!is.null(x$test_method)) x$test_method else "chi2"
+moa_df <- data.frame(
+  est = round(x$compare_ci$estimate, digits),
+  ci = moa_ci
+)
 
-  if (test_method == "fisher") {
+rownames(moa_df) <- x$compare_ci$measure
+colnames(moa_df) <- c("Estimate",
+                      paste0(round(100 * (1 - x$alpha)),
+                             "% CI"))
 
-    section(" Fisher's Exact Test")
-    or_f <- fmt(x$fisher_or)
-    p_f  <- if (x$fisher_p < 0.001) "< 0.001" else fmt(x$fisher_p, 3)
-    cat(sprintf("  OR = %s  (Fisher MLE),  p = %s   [%s]\n",
-                or_f, p_f, sig_label(x$fisher_p)))
+print(moa_df)
 
-  } else {
+cat("\n")
 
-    section(" Chi-Squared Test")
-    stat <- x$compare_test$statistic
-    df   <- x$compare_test$df
-    pval <- x$compare_test$p_value
-    p_str <- if (pval < 0.001) "< 0.001" else fmt(pval, 3)
-    cat(sprintf("  \u03c7\u00b2(%d) = %s,  p = %s   [%s]\n",
-                df, fmt(stat), p_str, sig_label(pval)))
+# ── test of association ───────────────────────────────────────────────────
+test_method <- x$compare_test$test_method
 
-  }
+if (test_method == "fisher_exact") {
 
-  rule()
-  invisible(x)
+  section("FISHER'S EXACT TEST")
+  or_f <- fmt(x$compare_test$test_summary$or_estimate)
+  p_f  <- if (x$compare_test$test_summary$p_value < 0.001) "< 0.001" else fmt(x$compare_test$test_summary$p_value, 3)
+  cat(sprintf("OR = %s  (Fisher MLE),  p = %s\n",
+              or_f, p_f))
+
+} else if (test_method == "chisq") {
+
+  section("CHI-SQUARED TEST")
+  stat <- x$compare_test$test_summary$statistic
+  df   <- x$compare_test$test_summary$df
+  pval <- x$compare_test$test_summary$p_value
+  p_str <- if (pval < 0.001) "< 0.001" else fmt(pval, 3)
+  cat(sprintf("\u03c7\u00b2(%d) = %s,  p = %s\n",
+              df, fmt(stat), p_str))
+
+} else if (test_method == "z") {
+  section("TWO-PROPORTION Z TEST")
+  stat <- x$compare_test$test_summary$statistic
+  df   <- x$compare_test$test_summary$df
+  pval <- x$compare_test$test_summary$p_value
+  p_str <- if (pval < 0.001) "< 0.001" else fmt(pval, 3)
+  cat(sprintf("Z = %s,  df = %d, p = %s\n",
+              fmt(stat), df, p_str))
+}
+
+invisible(x)
 }

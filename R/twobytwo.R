@@ -1,12 +1,64 @@
+#' Create a contingency table and calculate summary statistics
+#'
+#' Converts binary variables in a data.frame or tibble into a contingency table,
+#' then calculates relevant one-sample and two-sample summary statistics and
+#' inference artifacts.
+#'
+#' @param study_tbl A data.frame or tbl containing the exposure and outcome variables to be analyzed, as specified in the `exposure` and `outcome` arguments.
+#' @param exposure A string specifying the binary exposure variable in `study_tbl`. By default, the variable's highest level is treated as "exposed". To specify a different level as "exposed," use the form `"var_name == var_level"`.
+#' @param outcome A string specifying the binary outcome variable in `study_tbl`. By default, the variable's highest level is treated as the "event". To specify a different level as the "event," use the form `"var_name == var_level"`.
+#' @param ci_method A string specifying the method used to calculate the marginal proportion confidence intervals. Defaults to `"clopper-pearson"`. One of:
+#'   - `"wald"`: normal approximation interval.
+#'   - `"clopper-pearson"`: exact interval based on the binomial
+#'     distribution.
+#'   - `"agresti-coull"`: adjusted Wald interval with improved coverage.
+#'   - `"wilson"`: score interval based on inverting the score test.
+#' @param test_method A string specifying the hypothesis test used to test the difference in conditional proportions. Defaults to `"z"`. One of:
+#'    - `"z"`: two-sample Z-test using normal approximation.
+#'    - `"chisq"`: Chi-squared test.
+#'    - `"fisher_exact"`: Fisher's exact test.
+#'    - `"none"`: No hypothesis test will be performed.
+#' @param alpha A numeric value strictly between 0 and 1 specifying the significance level for confidence interval calculation and hypothesis tests. Defaults to `0.05`.
+#' @param ... Additional arguments passed to internal calculation functions, including:
+#'   - `correct`: continuity correction, used when `test_method` is `"z"` or `"chisq"`.
+#'   - `digits`: number of decimal places to display, used in [print.summary.anthill()].
+#'
+#' @returns An object of class `anthill`, which is a list containing:
+#'    - `exposure_name`: The name of the exposure column in the original `study_tbl`.
+#'    - `exposure_var`: The values of the exposure column expressed as a factor.
+#'    - `outcome_name`: The name of the outcome column in the original `study_tbl`.
+#'    - `outcome_var`: The values of the outcome column expressed as a factor.
+#'    - `contingency_table`: A list containing:
+#'        - `data`: The 2 x 2 `table` of counts, cross-tabulating the `exposure` and `outcome` columns.
+#'        - `row_prop`: A matrix of row-wise proportions of `data`.
+#'        - `col_prop`: A matrix of column-wise proportions of `data`.
+#'        - `cell_prop`: A matrix of cell-wise proportions of `data`.
+#'    - `ci_method`: The value of `ci_method`.
+#'    - `p_exposure`: The marginal proportion of exposed observations in `data`.
+#'    - `p_exposure_ci`: A numeric vector of length 2 (`lower`, `upper`) giving the 100 * (1 - `alpha`)% confidence interval for `p_exposure`, calculated using the method specified in `ci_method`
+#'    - `p_outcome`: The marginal proportion of observations with the event of interest in `data`.
+#'    - `p_outcome_ci`: A numeric vector of length 2 (`lower`, `upper`) giving the 100 * (1 - `alpha`)% confidence interval for `p_outcome`, calculated using the method specified in `ci_method`
+#'    - `compare_ci`: A data.frame summarizing the risk difference, risk ratio, and odds ratio comparing the conditional proportions of events across the exposed and unexposed groups. Contains columns `measure` (the measure name), `estimate` (the point estimate), `lower_ci`, and `upper_ci` (the 100 * (1 - `alpha`)% confidence bounds).
+#'    - `compare_test`: A list containing:
+#'        - `test_method`: The value of `test_method`.
+#'        - `test_summary`: A data.frame summarizing the key findings from `test_method`.
+#'            - When `test_method` is `"z"` or `"chisq"`, contains columns `statistic` (the test statistic), `df` (the degrees of freedom for the test), and `p-value` (the two-sided p-value for the test).
+#'            - When `test_method` is `"fisher_exact"`, contains columns `or_estimate` (the estimated odds ratio) and `p_value` (the two-sided p-value for the test).
+#'        - `test_result`: The underlying test object returned by the function corresponding to `test_method` (e.g., an `htest` object from [stats::prop.test()]).
+#'    - `alpha`: The value of `alpha`.
+#'
+#' @export
+#'
+#' @example
 twobytwo <- function(study_tbl,
                      exposure,
                      outcome,
-                     ci_method = c("clopper-pearson",
-                                   "wald",
+                     ci_method = c("wald",
+                                   "clopper-pearson",
                                    "agresti-coull",
-                                   "wilson",
-                                   "none"),
-                     test_method = c("chisq",
+                                   "wilson"),
+                     test_method = c("z",
+                                     "chisq",
                                      "fisher_exact",
                                      "none"),
                      alpha = 0.05,
@@ -18,12 +70,13 @@ twobytwo <- function(study_tbl,
 
   original_study_tbl <- study_tbl
 
+  # process inputs
   exposure_list <- prepare_var(
     study_tbl,
     exposure
   )
 
-    outcome_list <- prepare_var(
+  outcome_list <- prepare_var(
     study_tbl,
     outcome
   )
@@ -44,25 +97,30 @@ twobytwo <- function(study_tbl,
   out_var <- outcome_list[["attr_var"]]
   out_bin <- outcome_list[["attr_bin"]]
 
-  cont_table <- tibble::tibble(
-    !!rlang::sym(exposure_name) := exp_var,
-    !!rlang::sym(outcome_name) := out_var
-  ) %>%
-    table()
+  # generate summary statistics and estimates
+  cont_table <- data.frame(
+    exposure_col = exp_var,
+    outcome_col = out_var
+  )
+  colnames(cont_table) <- c(exposure_name, outcome_name)
+  cont_table <- table(cont_table)
 
-  if (ci_method != "none") {
-    p_exposure_list <- onesample_ci(
-      exp_bin,
-      ci_method,
-      alpha
-    )
+  cont_table_list <- list(data = cont_table)
+  cont_table_list$row_prop <- prop.table(cont_table, margin = 1)
+  cont_table_list$col_prop <- prop.table(cont_table, margin = 2)
+  cont_table_list$cell_prop <- prop.table(cont_table)
 
-    p_outcome_list <- onesample_ci(
-      out_bin,
-      ci_method,
-      alpha
-    )
-  }
+  p_exposure_list <- onesample_ci(
+    exp_bin,
+    ci_method,
+    alpha
+  )
+
+  p_outcome_list <- onesample_ci(
+    out_bin,
+    ci_method,
+    alpha
+  )
 
   moa_table <- moa_ci(
     cont_table,
@@ -72,7 +130,7 @@ twobytwo <- function(study_tbl,
   p_test <- test_result <- NA
   if (test_method == "fisher_exact") {
     test_result <- fisher.test(cont_table, ...)
-    p_test <- tibble::tibble(
+    p_test <- data.frame(
       or_estimate = test_result$estimate,
       p_value = test_result$p.value
     )
@@ -85,20 +143,20 @@ twobytwo <- function(study_tbl,
 
     if (test_method == "chisq") {
       test_result <- do.call(chisq.test,
-                        c(list(x = cont_table),
-                          relevant_args))
+                             c(list(x = cont_table),
+                               relevant_args))
 
-      p_test <- tibble::tibble(
+      p_test <- data.frame(
         statistic = test_result$statistic,
         df = test_result$parameter,
         p_value = test_result$p.value
       )
-    } else if (test_method != "none") {
+    } else if (test_method == "z") {
       test_result <- do.call(prop.test,
-                        c(list(x = cont_table),
-                          relevant_args))
+                             c(list(x = cont_table),
+                               relevant_args))
 
-      p_test <- tibble::tibble(
+      p_test <- data.frame(
         statistic = test_result$statistic,
         df = test_result$parameter,
         p_value = test_result$p.value
@@ -106,11 +164,12 @@ twobytwo <- function(study_tbl,
     }
   }
 
+  # return findings
   object <- list(exposure_name = exposure_name,
                  exposure = exp_var,
                  outcome_name = outcome_name,
                  outcome = out_var,
-                 contingency_table = cont_table,
+                 contingency_table = cont_table_list,
                  ci_method = ci_method,
                  p_exposure = p_exposure_list[["p_hat"]],
                  p_exposure_ci = p_exposure_list[["p_hat_ci"]],
@@ -119,7 +178,8 @@ twobytwo <- function(study_tbl,
                  compare_ci = moa_table,
                  compare_test = list(test_method = test_method,
                                      test_summary = p_test,
-                                     test_object = test_result))
+                                     test_object = test_result),
+                 alpha = alpha)
   class(object) <- "anthill"
 
   return(object)
