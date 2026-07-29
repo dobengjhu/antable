@@ -110,7 +110,7 @@ twobytwo <- function(study_tbl,
   cont_table_list$row_prop <- prop.table(cont_table, margin = 1)
   cont_table_list$col_prop <- prop.table(cont_table, margin = 2)
   cont_table_list$cell_prop <- prop.table(cont_table)
-  browser()
+
   p_exposure_list <- onesample_ci(
     exp_bin,
     ci_method,

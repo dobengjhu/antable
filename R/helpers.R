@@ -25,9 +25,10 @@ prepare_var <- function(tbl,
   } else {
     attr_name <- attr
     attr_var <- as.factor(tbl[[attr]])
+    attr_val <- levels(attr_var)[2]
   }
 
-  attr_bin <- attr_var == levels(attr_var)[2]
+  attr_bin <- attr_var == attr_val
 
   list(
     attr_name = attr_name,

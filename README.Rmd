@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of antable is to ...
+The goal of antable is to simplify the process of performing contingency table-based analyses when starting from a data.frame or tibble object. 
 
 ## Installation
 
@@ -34,6 +34,7 @@ pak::pak("dobengjhu/antable")
 This is a basic example which shows you how to solve a common problem:
 
 ```{r example}
+set.seed(100)
 data <- tibble::tibble(
   sex = c("Male", "Female")[rbinom(100, 1, 0.52) + 1],
   disease = c("Sick", "Cured")[rbinom(100, 1, 0.2) + 1]
