@@ -33,9 +33,8 @@ data <- tibble::tibble(
 
 library(antable)
 result <- twobytwo(study_tbl = data,
-                   exposure = "sex == 'Female'",
-                   outcome = "disease == 'Cured'",
-                   test_method = "chisq")
+                   exposure = "sex",
+                   outcome = "disease")
 summary(result)
 #> ═══════════════ 
 #> ANTABLE SUMMARY
@@ -46,38 +45,38 @@ summary(result)
 #> CONTINGENCY TABLE───────────────────────────────────── 
 #> 
 #>         disease
-#> sex       Sick   Cured  Total
+#> sex      Cured    Sick  Total
 #> --------------------------- 
-#> Male        33      16     49
-#>         67.35%  32.65%       
-#>         42.31%  72.73%       
-#>         33.00%  16.00%       
+#> Female       6      45     51
+#>         11.76%  88.24%       
+#>         27.27%  57.69%       
+#>          6.00%  45.00%       
 #> --------------------------- 
-#> Female      45       6     51
-#>         88.24%  11.76%       
-#>         57.69%  27.27%       
-#>         45.00%   6.00%       
+#> Male        16      33     49
+#>         32.65%  67.35%       
+#>         72.73%  42.31%       
+#>         16.00%  33.00%       
 #> --------------------------- 
-#> Total       78      22    100
+#> Total       22      78    100
 #> --------------------------- 
 #> Key: count / row % / col % / cell %
 #> 
 #> PREVALENCE──────────────────────────────────────────── 
 #> 
-#>                    Estimate      Wald 95% CI
-#> P(sex = Female)        0.51 [0.4120, 0.6080]
-#> P(disease = Cured)     0.22 [0.1388, 0.3012]
+#>                   Estimate      Wald 95% CI
+#> P(sex = Male)         0.49 [0.3920, 0.5880]
+#> P(disease = Sick)     0.78 [0.6988, 0.8612]
 #> 
 #> EXPOSURE-OUTCOME ASSOCIATION────────────────────────── 
 #> 
 #>                 Estimate             95% CI
 #> Risk Difference  -0.2089 [-0.3672, -0.0506]
-#> Risk Ratio        0.3603   [0.1536, 0.8450]
+#> Risk Ratio        0.7633   [0.6130, 0.9503]
 #> Odds Ratio        0.2750   [0.0972, 0.7782]
 #> 
-#> CHI-SQUARED TEST────────────────────────────────────── 
+#> TWO-PROPORTION Z TEST───────────────────────────────── 
 #> 
-#> χ²(1) = 6.354,  p = 0.0117
+#> Z = 6.354,  df = 1, p = 0.0117
 ```
 
 Sometimes variable values are not ordered in a manner that aligns with
@@ -92,8 +91,7 @@ definition using the general form `"var_name == var_level"`:
 ``` r
 result <- twobytwo(study_tbl = data,
                    exposure = "sex == 'Female'",
-                   outcome = "disease == 'Cured'",
-                   test_method = "chisq")
+                   outcome = "disease == 'Cured'")
 summary(result)
 #> ═══════════════ 
 #> ANTABLE SUMMARY
@@ -133,7 +131,7 @@ summary(result)
 #> Risk Ratio        0.3603   [0.1536, 0.8450]
 #> Odds Ratio        0.2750   [0.0972, 0.7782]
 #> 
-#> CHI-SQUARED TEST────────────────────────────────────── 
+#> TWO-PROPORTION Z TEST───────────────────────────────── 
 #> 
-#> χ²(1) = 6.354,  p = 0.0117
+#> Z = 6.354,  df = 1, p = 0.0117
 ```

@@ -42,9 +42,8 @@ data <- tibble::tibble(
 
 library(antable)
 result <- twobytwo(study_tbl = data,
-                   exposure = "sex == 'Female'",
-                   outcome = "disease == 'Cured'",
-                   test_method = "chisq")
+                   exposure = "sex",
+                   outcome = "disease")
 summary(result)
 ```
 
@@ -53,7 +52,6 @@ Sometimes variable values are not ordered in a manner that aligns with the resea
 ```{r}
 result <- twobytwo(study_tbl = data,
                    exposure = "sex == 'Female'",
-                   outcome = "disease == 'Cured'",
-                   test_method = "chisq")
+                   outcome = "disease == 'Cured'")
 summary(result)
 ```
