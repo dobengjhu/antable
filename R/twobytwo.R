@@ -52,8 +52,8 @@
 #'
 #' @example inst/examples/examples-twobytwo.R
 twobytwo <- function(study_tbl,
-                     exposure,
                      outcome,
+                     exposure = NULL,
                      ci_method = c("wald",
                                    "clopper-pearson",
                                    "agresti-coull",
@@ -65,57 +65,30 @@ twobytwo <- function(study_tbl,
                      alpha = 0.05,
                      ...) {
 
-  # assertions on arguments
   ci_method <- match.arg(ci_method)
   test_method <- match.arg(test_method)
 
+
+
   original_study_tbl <- study_tbl
 
-  # process inputs
-  exposure_list <- prepare_var(
-    study_tbl,
-    exposure
-  )
+  tabulate_list <- crosstab(study_tbl,
+                            outcome,
+                            exposure,
+                            TRUE)
 
-  outcome_list <- prepare_var(
-    study_tbl,
-    outcome
-  )
-
-  vars_list <- remove_attr_na(
-    exposure_list,
-    outcome_list
-  )
-
-  list2env(vars_list,
+  list2env(tabulate_list,
            envir = environment())
 
-  exposure_name <- exposure_list[["attr_name"]]
-  exp_var <- exposure_list[["attr_var"]]
-  exp_bin <- exposure_list[["attr_bin"]]
+  object <- list(outcome_name = outcome_name,
+                 outcome = out_var)
 
-  outcome_name <- outcome_list[["attr_name"]]
-  out_var <- outcome_list[["attr_var"]]
-  out_bin <- outcome_list[["attr_bin"]]
+  if (!is.null(exposure)) {
+    object$exposure_name <- exposure_name
+    object$exposure <- exp_var
+  }
 
-  # generate summary statistics and estimates
-  cont_table <- data.frame(
-    exposure_col = exp_var,
-    outcome_col = out_var
-  )
-  colnames(cont_table) <- c(exposure_name, outcome_name)
-  cont_table <- table(cont_table)
-
-  cont_table_list <- list(data = cont_table)
-  cont_table_list$row_prop <- prop.table(cont_table, margin = 1)
-  cont_table_list$col_prop <- prop.table(cont_table, margin = 2)
-  cont_table_list$cell_prop <- prop.table(cont_table)
-
-  p_exposure_list <- onesample_ci(
-    exp_bin,
-    ci_method,
-    alpha
-  )
+  object$contingency_table <- contingency_table
 
   p_outcome_list <- onesample_ci(
     out_bin,
@@ -123,65 +96,70 @@ twobytwo <- function(study_tbl,
     alpha
   )
 
-  moa_table <- moa_ci(
-    cont_table,
-    alpha
-  )
+  object$ci_method <- ci_method
+  object$alpha <- alpha
+  object$p_outcome <- p_outcome_list$p_hat
+  object$p_outcome_ci <- p_outcome_list$p_hat_ci
 
-  p_test <- test_result <- NA
-  if (test_method == "fisher_exact") {
-    test_result <- fisher.test(cont_table, ...)
-    p_test <- data.frame(
-      or_estimate = test_result$estimate,
-      p_value = test_result$p.value
+  if (!is.null(exposure)) {
+    p_exposure_list <- onesample_ci(
+      exp_bin,
+      ci_method,
+      alpha
     )
-  } else {
-    extra_args <- list(...)
-    relevant_args <- extra_args[names(extra_args) %in% names(formals(chisq.test))]
-    if (is.null(relevant_args[["correct"]])) {
-      relevant_args[["correct"]] <- FALSE
-    }
 
-    if (test_method == "chisq") {
-      test_result <- do.call(chisq.test,
-                             c(list(x = cont_table),
-                               relevant_args))
+    object$p_exposure <- p_exposure_list$p_hat
+    object$p_exposure_ci <- p_exposure_list$p_hat_ci
 
+    moa_table <- moa_ci(
+      contingency_table$data,
+      alpha
+    )
+
+    object$compare_ci = moa_table
+
+    p_test <- test_result <- NA
+    if (test_method == "fisher_exact") {
+      test_result <- fisher.test(contingency_table$data, ...)
       p_test <- data.frame(
-        statistic = test_result$statistic,
-        df = test_result$parameter,
+        or_estimate = test_result$estimate,
         p_value = test_result$p.value
       )
-    } else if (test_method == "z") {
-      test_result <- do.call(prop.test,
-                             c(list(x = cont_table),
-                               relevant_args))
+    } else {
+      extra_args <- list(...)
+      relevant_args <- extra_args[names(extra_args) %in% names(formals(chisq.test))]
+      if (is.null(relevant_args[["correct"]])) {
+        relevant_args[["correct"]] <- FALSE
+      }
 
-      p_test <- data.frame(
-        statistic = test_result$statistic,
-        df = test_result$parameter,
-        p_value = test_result$p.value
-      )
+      if (test_method == "chisq") {
+        test_result <- do.call(chisq.test,
+                               c(list(x = contingency_table$data),
+                                 relevant_args))
+
+        p_test <- data.frame(
+          statistic = test_result$statistic,
+          df = test_result$parameter,
+          p_value = test_result$p.value
+        )
+      } else if (test_method == "z") {
+        test_result <- do.call(prop.test,
+                               c(list(x = contingency_table$data),
+                                 relevant_args))
+
+        p_test <- data.frame(
+          statistic = test_result$statistic,
+          df = test_result$parameter,
+          p_value = test_result$p.value
+        )
+      }
     }
+
+    object$compare_test <- list(test_method = test_method,
+                                test_summary = p_test,
+                                test_object = test_result)
   }
 
-  # return findings
-  object <- list(exposure_name = exposure_name,
-                 exposure = exp_var,
-                 outcome_name = outcome_name,
-                 outcome = out_var,
-                 contingency_table = cont_table_list,
-                 ci_method = ci_method,
-                 p_exposure = p_exposure_list[["p_hat"]],
-                 p_exposure_ci = p_exposure_list[["p_hat_ci"]],
-                 p_outcome = p_outcome_list[["p_hat"]],
-                 p_outcome_ci = p_outcome_list[["p_hat_ci"]],
-                 compare_ci = moa_table,
-                 compare_test = list(test_method = test_method,
-                                     test_summary = p_test,
-                                     test_object = test_result),
-                 alpha = alpha)
   class(object) <- "anthill"
-
   return(object)
 }

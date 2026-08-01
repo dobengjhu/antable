@@ -6,8 +6,8 @@
 \usage{
 twobytwo(
   study_tbl,
-  exposure,
   outcome,
+  exposure = NULL,
   ci_method = c("wald", "clopper-pearson", "agresti-coull", "wilson"),
   test_method = c("z", "chisq", "fisher_exact", "none"),
   alpha = 0.05,
@@ -17,9 +17,9 @@ twobytwo(
 \arguments{
 \item{study_tbl}{A data.frame or tbl containing the exposure and outcome variables to be analyzed, as specified in the \code{exposure} and \code{outcome} arguments.}
 
-\item{exposure}{A string specifying the binary exposure variable in \code{study_tbl}. By default, the variable's highest level is treated as "exposed". To specify a different level as "exposed," use the form \code{"var_name == var_level"}.}
-
 \item{outcome}{A string specifying the binary outcome variable in \code{study_tbl}. By default, the variable's highest level is treated as the "event". To specify a different level as the "event," use the form \code{"var_name == var_level"}.}
+
+\item{exposure}{A string specifying the binary exposure variable in \code{study_tbl}. By default, the variable's highest level is treated as "exposed". To specify a different level as "exposed," use the form \code{"var_name == var_level"}.}
 
 \item{ci_method}{A string specifying the method used to calculate the marginal proportion confidence intervals. Defaults to \code{"clopper-pearson"}. One of:
 \itemize{
@@ -114,4 +114,18 @@ twobytwo(study_tbl = dat,
          exposure = "sex",
          outcome = "disease",
          test_method = "none")
+
+dat <- data.frame(
+  sex = c("Male", "Female")[rbinom(100, 1, 0.52) + 1],
+  smoking_status = sample(c("Current", "Former", "Never"),
+                          100,
+                          replace = TRUE,
+                          prob = c(0.4, 0.15, 0.45))
+)
+
+# Use tabulate() for standalone cross-tabulation
+result <- crosstab(study_tbl = dat \%>\% filter(smoking_status == "Former", sex == "Male"),
+                   exposure = "sex",
+                   outcome = "smoking_status")
+summary(result)
 }

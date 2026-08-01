@@ -27,3 +27,17 @@ twobytwo(study_tbl = dat,
          exposure = "sex",
          outcome = "disease",
          test_method = "none")
+
+dat <- data.frame(
+  sex = c("Male", "Female")[rbinom(100, 1, 0.52) + 1],
+  smoking_status = sample(c("Current", "Former", "Never"),
+                          100,
+                          replace = TRUE,
+                          prob = c(0.4, 0.15, 0.45))
+)
+
+# Use tabulate() for standalone cross-tabulation
+result <- crosstab(study_tbl = dat %>% filter(smoking_status == "Former", sex == "Male"),
+                   exposure = "sex",
+                   outcome = "smoking_status")
+summary(result)
