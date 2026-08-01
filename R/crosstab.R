@@ -3,10 +3,27 @@
 #' @inheritParams twobytwo study_tbl outcome exposure
 #' @param tbt_flag A logical flag. If `TRUE`, then output will be supplied to [`twobytwo()`]; otherwise, output returned to user.
 #'
-#' @returns
+#' @returns If `tbt_flag` is `TRUE`, a list containing:
+#'    - `outcome_name`: Name of the outcome variable.
+#'    - `exposure_name`: Name of the exposure variable (if `exposure` is not `NULL`).
+#'    - `out_var`: Outcome variable represented as a factor variable.
+#'    - `exp_var`: Exposure variable represented as a factor variable (if `exposure` is not `NULL`)
+#'    - `outbin`: Outcome variable represented as a logical variable where `outbin` is `TRUE` if variable value is equal to the value of interest.
+#'    - `expbin`: Outcome variable represented as a logical variable where `outbin` is `TRUE` if variable value is equal to the value of interest (if `exposure` is not `NULL`).
+#'    - `contingency_table`: A list containing:
+#'        - `data`: The 1 x 2 `table` of counts tabulating the `outcome` column (if `exposure` is `NULL`) or the 2 x 2 `table` of counts, cross-tabulating the `exposure` and `outcome` columns.
+#'        - `row_prop`: A matrix of row-wise proportions of `data` (if `exposure` is not `NULL`).
+#'        - `col_prop`: A matrix of column-wise proportions of `data` (if `exposure` is not `NULL`).
+#'        - `cell_prop`: A matrix of cell-wise proportions of `data`.
+#'  If `tbt_flag` is `FALSE`, an object of class `antcon`, which is a list containing:
+#'    - `data`: The 1 x 2 `table` of counts tabulating the `outcome` column (if `exposure` is `NULL`) or the 2 x 2 `table` of counts, cross-tabulating the `exposure` and `outcome` columns.
+#'    - `row_prop`: A matrix of row-wise proportions of `data` (if `exposure` is not `NULL`).
+#'    - `col_prop`: A matrix of column-wise proportions of `data` (if `exposure` is not `NULL`).
+#'    - `cell_prop`: A matrix of cell-wise proportions of `data`.
+#'
 #' @export
 #'
-#' @examples
+#' @examples inst/examples/examples-crosstab.R
 crosstab <- function(study_tbl,
                      outcome,
                      exposure = NULL,
