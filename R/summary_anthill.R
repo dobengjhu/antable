@@ -66,7 +66,7 @@ print.summary.anthill <- function(x,
   if ("contingency_table" %in% names(x)) {
     section("CONTINGENCY TABLE")
 
-    print.summary.antcon(x$contingency_table)
+    print(summary(x$contingency_table))
     cat("\n")
   }
 
@@ -199,7 +199,7 @@ summary.antcon <- function(object,
 #' @param ... Further arguments passed to or from other methods.
 #'
 #' @exportS3Method
-print.summary.antcon <- function(x) {
+print.summary.antcon <- function(x, ...) {
   data <- x$data
 
   if (length(dim(data)) == 2) {

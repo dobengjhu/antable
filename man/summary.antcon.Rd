@@ -7,7 +7,7 @@
 \usage{
 \method{summary}{antcon}(object, ...)
 
-\method{print}{summary.antcon}(x)
+\method{print}{summary.antcon}(x, ...)
 }
 \arguments{
 \item{object}{An object of class "antcon", usually a result of a call to \code{\link[=tabulate]{tabulate()}}.}
