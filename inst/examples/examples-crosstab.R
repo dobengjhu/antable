@@ -10,16 +10,25 @@ dat <- data.frame(
 
 # Use crosstab() for standalone cross-tabulation
 result_disease <- crosstab(study_tbl = dat,
-                   exposure = "sex",
-                   outcome = "disease")
+                           outcome = "disease",
+                           exposure = "sex")
 summary(result_disease)
 
 result_smoking <- crosstab(study_tbl = dat,
-                   exposure = "sex",
-                   outcome = "smoking_status")
+                           outcome = "smoking_status",
+                           exposure = "sex")
 summary(result_smoking)
 
+# Also works for tabulation of a single variable
 result_sex <- crosstab(study_tbl = dat,
-                       exposure = NULL,
-                       outcome = "sex")
+                       outcome = "sex",
+                       exposure = NULL)
 summary(result_sex)
+
+# Option to include missing values as separate category
+dat$disease[sample(1:100, 10)] <- NA
+result_smoking_missing <- crosstab(study_tbl = dat,
+                                   outcome = "smoking_status",
+                                   exposure = "sex",
+                                   include_missing = TRUE)
+summary(result_smoking_missing)

@@ -31,5 +31,3 @@ twobytwo(study_tbl = dat,
          exposure = "sex",
          outcome = "disease",
          test_method = "none")
-
-

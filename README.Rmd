@@ -77,3 +77,55 @@ result_smoking <- crosstab(study_tbl = data,
 summary(result_smoking)
 ```
 
+Both `twobytwo()` and `crosstab()` can also be used to evaluate a single variable of interest by assigning it to the `outcome` with `exposure = NULL`. Note that `twobytwo()` requires the variable to be binary and will not return any statistics related to measuring association or hypothesis testing, while `crosstab()` can accommodate categorical variables with more than two categories. 
+
+```{r}
+result_disease_only <- twobytwo(study_tbl = data,
+                                outcome = "disease",
+                                exposure = NULL)
+summary(result_disease_only)
+
+result_smoking_status_only <- crosstab(study_tbl = data,
+                                       outcome = "smoking_status",
+                                       exposure = NULL)
+summary(result_smoking_status_only)
+```
+
+Options for dealing with missing values differ between the two functions:
+
+  - `twobytwo()` excludes all observations that are missing a value for `outcome` or `exposure`
+  - `crosstab()` gives users the option of excluding observations that are missing a value for `outcome` or `exposure`, or treating the missingness as an additional category for both variables. 
+  
+```{r}
+data_na <- data
+data_na$sex[sample(1:100, 10)] <- NA
+data_na$disease[sample(1:100, 10)] <- NA
+```
+  
+```{r}
+dplyr::summarise(data_na, 
+                 across(c(sex, disease), ~ sum(is.na(.))))
+
+dplyr::filter(data_na,
+              is.na(sex) | is.na(disease))
+```
+  
+Each variable is missing 10 observations, respectively, but only one observation is missing information for _both_ sex and disease status. 
+
+```{r}
+result_disease_twobytwo <- twobytwo(study_tbl = data_na,
+                                    outcome = "disease",
+                                    exposure = "sex")
+summary(result_disease_twobytwo)
+
+result_disease_crosstab <- crosstab(study_tbl = data_na,
+                                    outcome = "disease")
+summary(result_disease_crosstab)
+
+result_disease_crosstab_missing <- crosstab(study_tbl = data_na,
+                                    outcome = "disease",
+                                    include_missing = TRUE)
+summary(result_disease_crosstab_missing)
+```
+
+  

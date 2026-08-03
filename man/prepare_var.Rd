@@ -4,12 +4,14 @@
 \alias{prepare_var}
 \title{Prepare variables for contingency table analysis}
 \usage{
-prepare_var(tbl, attr)
+prepare_var(tbl, attr, tbt_flag)
 }
 \arguments{
 \item{tbl}{A data.frame or tbl containing the variable of interest, as specified in the \code{attr} argument.}
 
 \item{attr}{A string specifying either a binary variable in \code{tbl}, or the variable and associated level of interest useing the form \code{"var_name == var_level"}.}
+
+\item{tbt_flag}{A logical flag. If \code{TRUE}, output will be returned to \code{\link[=twobytwo]{twobytwo()}}; If \code{FALSE}, output will be returned to \code{\link[=crosstab]{crosstab()}}.}
 }
 \value{
 A list containing:

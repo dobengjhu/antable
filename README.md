@@ -182,3 +182,171 @@ summary(result_smoking)
 #> -------------------------------------- 
 #> Key: count / row % / col % / cell %
 ```
+
+Both `twobytwo()` and `crosstab()` can also be used to evaluate a single
+variable of interest by assigning it to the `outcome` with
+`exposure = NULL`. Note that `twobytwo()` requires the variable to be
+binary and will not return any statistics related to measuring
+association or hypothesis testing, while `crosstab()` can accommodate
+categorical variables with more than two categories.
+
+``` r
+result_disease_only <- twobytwo(study_tbl = data,
+                                outcome = "disease",
+                                exposure = NULL)
+summary(result_disease_only)
+#> ═══════════════ 
+#> ANTABLE SUMMARY
+#> ═══════════════ 
+#> Outcome  : disease (n = 100)
+#> 
+#> CONTINGENCY TABLE───────────────────────────────────── 
+#> 
+#> disease
+#>     Cured    Sick    Total
+#> -------------------------- 
+#> n      17      83      100
+#> %  17.00%  83.00%  100.00%
+#> -------------------------- 
+#> Key: count / %
+#> 
+#> PREVALENCE──────────────────────────────────────────── 
+#> 
+#>                    Estimate      Wald 95% CI
+#> P(disease = Cured)     0.83 [0.7564, 0.9036]
+
+result_smoking_status_only <- crosstab(study_tbl = data,
+                                       outcome = "smoking_status",
+                                       exposure = NULL)
+summary(result_smoking_status_only)
+#> smoking_status
+#>    Current  Former   Never    Total
+#> ----------------------------------- 
+#> n       42      14      44      100
+#> %   42.00%  14.00%  44.00%  100.00%
+#> ----------------------------------- 
+#> Key: count / %
+```
+
+Options for dealing with missing values differ between the two
+functions:
+
+- `twobytwo()` excludes all observations that are missing a value for
+  `outcome` or `exposure`
+- `crosstab()` gives users the option of excluding observations that are
+  missing a value for `outcome` or `exposure`, or treating the
+  missingness as an additional category for both variables.
+
+``` r
+data_na <- data
+data_na$sex[sample(1:100, 10)] <- NA
+data_na$disease[sample(1:100, 10)] <- NA
+```
+
+``` r
+dplyr::summarise(data_na, 
+                 across(c(sex, disease), ~ sum(is.na(.))))
+#> # A tibble: 1 × 2
+#>     sex disease
+#>   <int>   <int>
+#> 1    10      10
+
+dplyr::filter(data_na,
+              is.na(sex) | is.na(disease))
+#> # A tibble: 19 × 3
+#>    sex    smoking_status disease
+#>    <chr>  <chr>          <chr>  
+#>  1 <NA>   Never          Cured  
+#>  2 Male   Former         <NA>   
+#>  3 <NA>   Current        Sick   
+#>  4 Female Never          <NA>   
+#>  5 <NA>   Current        Sick   
+#>  6 Female Never          <NA>   
+#>  7 Male   Current        <NA>   
+#>  8 Female Current        <NA>   
+#>  9 Male   Never          <NA>   
+#> 10 <NA>   Never          Sick   
+#> 11 Male   Never          <NA>   
+#> 12 <NA>   Current        Cured  
+#> 13 <NA>   Current        Sick   
+#> 14 Male   Current        <NA>   
+#> 15 <NA>   Never          Sick   
+#> 16 <NA>   Never          Sick   
+#> 17 <NA>   Never          <NA>   
+#> 18 Female Never          <NA>   
+#> 19 <NA>   Current        Sick
+```
+
+Each variable is missing 10 observations, respectively, but only one
+observation is missing information for *both* sex and disease status.
+
+``` r
+result_disease_twobytwo <- twobytwo(study_tbl = data_na,
+                                    outcome = "disease",
+                                    exposure = "sex")
+summary(result_disease_twobytwo)
+#> ═══════════════ 
+#> ANTABLE SUMMARY
+#> ═══════════════ 
+#> Outcome  : disease (n = 81)
+#> Exposure : sex (n = 81)
+#> 
+#> CONTINGENCY TABLE───────────────────────────────────── 
+#> 
+#>         disease
+#> sex      Cured    Sick  Total
+#> ----------------------------- 
+#> Female      10      33     43
+#>         23.26%  76.74%       
+#>         76.92%  48.53%       
+#>         12.35%  40.74%       
+#> ----------------------------- 
+#> Male         3      35     38
+#>          7.89%  92.11%       
+#>         23.08%  51.47%       
+#>          3.70%  43.21%       
+#> ----------------------------- 
+#> Total       13      68     81
+#> ----------------------------- 
+#> Key: count / row % / col % / cell %
+#> 
+#> PREVALENCE──────────────────────────────────────────── 
+#> 
+#>                    Estimate      Wald 95% CI
+#> P(disease = Cured)   0.8395 [0.7596, 0.9194]
+#> P(sex = Female)      0.4691 [0.3605, 0.5778]
+#> 
+#> EXPOSURE-OUTCOME ASSOCIATION────────────────────────── 
+#> 
+#>                 Estimate            95% CI
+#> Risk Difference   0.1536  [0.0010, 0.3062]
+#> Risk Ratio        1.2002  [0.9934, 1.4499]
+#> Odds Ratio        3.5354 [0.8938, 13.9835]
+#> 
+#> TWO-PROPORTION Z TEST───────────────────────────────── 
+#> 
+#> Z = 3.533,  df = 1, p = 0.0602
+
+result_disease_crosstab <- crosstab(study_tbl = data_na,
+                                    outcome = "disease")
+summary(result_disease_crosstab)
+#> disease
+#>     Cured    Sick    Total
+#> -------------------------- 
+#> n      15      75       90
+#> %  16.67%  83.33%  100.00%
+#> -------------------------- 
+#> Key: count / %
+
+result_disease_crosstab_missing <- crosstab(study_tbl = data_na,
+                                    outcome = "disease",
+                                    include_missing = TRUE)
+summary(result_disease_crosstab_missing)
+#> disease
+#>     Cured    Sick  Missing    Total
+#> ----------------------------------- 
+#> n      15      75       10      100
+#> %  15.00%  75.00%   10.00%  100.00%
+#> ----------------------------------- 
+#> Key: count / %
+```

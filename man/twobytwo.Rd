@@ -19,7 +19,7 @@ twobytwo(
 
 \item{outcome}{A string specifying the binary outcome variable in \code{study_tbl}. By default, the variable's highest level is treated as the "event". To specify a different level as the "event," use the form \code{"var_name == var_level"}.}
 
-\item{exposure}{A string specifying the binary exposure variable in \code{study_tbl}. By default, the variable's highest level is treated as "exposed". To specify a different level as "exposed," use the form \code{"var_name == var_level"}.}
+\item{exposure}{(Optional) A string specifying the binary exposure variable in \code{study_tbl}. Default is \code{NULL}. If a variable is specified, the variable's highest level is treated as "exposed" by default. To specify a different level as "exposed," use the form \code{"var_name == var_level"}.}
 
 \item{ci_method}{A string specifying the method used to calculate the marginal proportion confidence intervals. Defaults to \code{"clopper-pearson"}. One of:
 \itemize{
@@ -49,24 +49,24 @@ distribution.
 \value{
 An object of class \code{anthill}, which is a list containing:
 \itemize{
-\item \code{exposure_name}: The name of the exposure column in the original \code{study_tbl}.
-\item \code{exposure_var}: The values of the exposure column expressed as a factor.
 \item \code{outcome_name}: The name of the outcome column in the original \code{study_tbl}.
 \item \code{outcome_var}: The values of the outcome column expressed as a factor.
+\item \code{exposure_name}: The name of the exposure column in the original \code{study_tbl} (if \code{exposure} is not \code{NULL}).
+\item \code{exposure_var}: The values of the exposure column expressed as a factor (if \code{exposure} is not \code{NULL}).
 \item \code{contingency_table}: A list containing:
 \itemize{
 \item \code{data}: The 2 x 2 \code{table} of counts, cross-tabulating the \code{exposure} and \code{outcome} columns.
-\item \code{row_prop}: A matrix of row-wise proportions of \code{data}.
-\item \code{col_prop}: A matrix of column-wise proportions of \code{data}.
+\item \code{row_prop}: A matrix of row-wise proportions of \code{data} (if \code{exposure} is not \code{NULL}).
+\item \code{col_prop}: A matrix of column-wise proportions of \code{data} (if \code{exposure} is not \code{NULL}).
 \item \code{cell_prop}: A matrix of cell-wise proportions of \code{data}.
 }
 \item \code{ci_method}: The value of \code{ci_method}.
-\item \code{p_exposure}: The marginal proportion of exposed observations in \code{data}.
-\item \code{p_exposure_ci}: A numeric vector of length 2 (\code{lower}, \code{upper}) giving the 100 * (1 - \code{alpha})\% confidence interval for \code{p_exposure}, calculated using the method specified in \code{ci_method}
 \item \code{p_outcome}: The marginal proportion of observations with the event of interest in \code{data}.
 \item \code{p_outcome_ci}: A numeric vector of length 2 (\code{lower}, \code{upper}) giving the 100 * (1 - \code{alpha})\% confidence interval for \code{p_outcome}, calculated using the method specified in \code{ci_method}
-\item \code{compare_ci}: A data.frame summarizing the risk difference, risk ratio, and odds ratio comparing the conditional proportions of events across the exposed and unexposed groups. Contains columns \code{measure} (the measure name), \code{estimate} (the point estimate), \code{lower_ci}, and \code{upper_ci} (the 100 * (1 - \code{alpha})\% confidence bounds).
-\item \code{compare_test}: A list containing:
+\item \code{p_exposure}: The marginal proportion of exposed observations in \code{data} (if \code{exposure} is not \code{NULL}).
+\item \code{p_exposure_ci}: A numeric vector of length 2 (\code{lower}, \code{upper}) giving the 100 * (1 - \code{alpha})\% confidence interval for \code{p_exposure}, calculated using the method specified in \code{ci_method} (if \code{exposure} is not \code{NULL}).
+\item \code{compare_ci}: A data.frame summarizing the risk difference, risk ratio, and odds ratio comparing the conditional proportions of events across the exposed and unexposed groups. Contains columns \code{measure} (the measure name), \code{estimate} (the point estimate), \code{lower_ci}, and \code{upper_ci} (the 100 * (1 - \code{alpha})\% confidence bounds) (if \code{exposure} is not \code{NULL}).
+\item \code{compare_test}: If \code{exposure} is not \code{NULL}, a list containing:
 \itemize{
 \item \code{test_method}: The value of \code{test_method}.
 \item \code{test_summary}: A data.frame summarizing the key findings from \code{test_method}.
@@ -118,6 +118,4 @@ twobytwo(study_tbl = dat,
          exposure = "sex",
          outcome = "disease",
          test_method = "none")
-
-
 }

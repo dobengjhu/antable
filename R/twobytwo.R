@@ -6,7 +6,7 @@
 #'
 #' @importFrom stats qnorm qbeta fisher.test chisq.test prop.test
 #' @param study_tbl A data.frame or tbl containing the exposure and outcome variables to be analyzed, as specified in the `exposure` and `outcome` arguments.
-#' @param exposure A string specifying the binary exposure variable in `study_tbl`. By default, the variable's highest level is treated as "exposed". To specify a different level as "exposed," use the form `"var_name == var_level"`.
+#' @param exposure (Optional) A string specifying the binary exposure variable in `study_tbl`. Default is `NULL`. If a variable is specified, the variable's highest level is treated as "exposed" by default. To specify a different level as "exposed," use the form `"var_name == var_level"`.
 #' @param outcome A string specifying the binary outcome variable in `study_tbl`. By default, the variable's highest level is treated as the "event". To specify a different level as the "event," use the form `"var_name == var_level"`.
 #' @param ci_method A string specifying the method used to calculate the marginal proportion confidence intervals. Defaults to `"clopper-pearson"`. One of:
 #'   - `"wald"`: normal approximation interval.
@@ -25,22 +25,22 @@
 #'   - `digits`: number of decimal places to display, used in [print.summary.anthill()].
 #'
 #' @returns An object of class `anthill`, which is a list containing:
-#'    - `exposure_name`: The name of the exposure column in the original `study_tbl`.
-#'    - `exposure_var`: The values of the exposure column expressed as a factor.
 #'    - `outcome_name`: The name of the outcome column in the original `study_tbl`.
 #'    - `outcome_var`: The values of the outcome column expressed as a factor.
+#'    - `exposure_name`: The name of the exposure column in the original `study_tbl` (if `exposure` is not `NULL`).
+#'    - `exposure_var`: The values of the exposure column expressed as a factor (if `exposure` is not `NULL`).
 #'    - `contingency_table`: A list containing:
 #'        - `data`: The 2 x 2 `table` of counts, cross-tabulating the `exposure` and `outcome` columns.
-#'        - `row_prop`: A matrix of row-wise proportions of `data`.
-#'        - `col_prop`: A matrix of column-wise proportions of `data`.
+#'        - `row_prop`: A matrix of row-wise proportions of `data` (if `exposure` is not `NULL`).
+#'        - `col_prop`: A matrix of column-wise proportions of `data` (if `exposure` is not `NULL`).
 #'        - `cell_prop`: A matrix of cell-wise proportions of `data`.
 #'    - `ci_method`: The value of `ci_method`.
-#'    - `p_exposure`: The marginal proportion of exposed observations in `data`.
-#'    - `p_exposure_ci`: A numeric vector of length 2 (`lower`, `upper`) giving the 100 * (1 - `alpha`)% confidence interval for `p_exposure`, calculated using the method specified in `ci_method`
 #'    - `p_outcome`: The marginal proportion of observations with the event of interest in `data`.
 #'    - `p_outcome_ci`: A numeric vector of length 2 (`lower`, `upper`) giving the 100 * (1 - `alpha`)% confidence interval for `p_outcome`, calculated using the method specified in `ci_method`
-#'    - `compare_ci`: A data.frame summarizing the risk difference, risk ratio, and odds ratio comparing the conditional proportions of events across the exposed and unexposed groups. Contains columns `measure` (the measure name), `estimate` (the point estimate), `lower_ci`, and `upper_ci` (the 100 * (1 - `alpha`)% confidence bounds).
-#'    - `compare_test`: A list containing:
+#'    - `p_exposure`: The marginal proportion of exposed observations in `data` (if `exposure` is not `NULL`).
+#'    - `p_exposure_ci`: A numeric vector of length 2 (`lower`, `upper`) giving the 100 * (1 - `alpha`)% confidence interval for `p_exposure`, calculated using the method specified in `ci_method` (if `exposure` is not `NULL`).
+#'    - `compare_ci`: A data.frame summarizing the risk difference, risk ratio, and odds ratio comparing the conditional proportions of events across the exposed and unexposed groups. Contains columns `measure` (the measure name), `estimate` (the point estimate), `lower_ci`, and `upper_ci` (the 100 * (1 - `alpha`)% confidence bounds) (if `exposure` is not `NULL`).
+#'    - `compare_test`: If `exposure` is not `NULL`, a list containing:
 #'        - `test_method`: The value of `test_method`.
 #'        - `test_summary`: A data.frame summarizing the key findings from `test_method`.
 #'            - When `test_method` is `"z"` or `"chisq"`, contains columns `statistic` (the test statistic), `df` (the degrees of freedom for the test), and `p-value` (the two-sided p-value for the test).
@@ -68,26 +68,60 @@ twobytwo <- function(study_tbl,
   ci_method <- match.arg(ci_method)
   test_method <- match.arg(test_method)
 
-
+  if (!is.numeric(alpha) | alpha <= 0 | alpha >= 1) {
+    stop("`alpha` must be a numeric value between 0 and 1.",
+         call. = FALSE)
+  }
 
   original_study_tbl <- study_tbl
+  TBT_FLAG <- TRUE
 
-  tabulate_list <- crosstab(study_tbl,
-                            outcome,
-                            exposure,
-                            TRUE)
+  outcome_list <- prepare_var(
+    study_tbl,
+    outcome,
+    TBT_FLAG
+  )
 
-  list2env(tabulate_list,
+  if (!is.null(exposure)) {
+    exposure_list <- prepare_var(
+      study_tbl,
+      exposure,
+      TBT_FLAG
+    )
+  } else {
+    exposure_list <- NULL
+  }
+
+  vars_list <- remove_attr_na(
+    exposure_list,
+    outcome_list
+  )
+
+  list2env(vars_list,
            envir = environment())
+
+  outcome_name <- outcome_list[["attr_name"]]
+  out_var <- outcome_list[["attr_var"]]
+  out_bin <- outcome_list[["attr_bin"]]
 
   object <- list(outcome_name = outcome_name,
                  outcome = out_var)
 
   if (!is.null(exposure)) {
+    exposure_name <- exposure_list[["attr_name"]]
+    exp_var <- exposure_list[["attr_var"]]
+    exp_bin <- exposure_list[["attr_bin"]]
+
     object$exposure_name <- exposure_name
     object$exposure <- exp_var
+  } else {
+    exposure_name <- exp_var <- NULL
   }
 
+  contingency_table <- get_contingency(out_var,
+                                       outcome_name,
+                                       exp_var,
+                                       exposure_name)
   object$contingency_table <- contingency_table
 
   p_outcome_list <- onesample_ci(

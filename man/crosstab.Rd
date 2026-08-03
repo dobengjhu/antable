@@ -4,43 +4,60 @@
 \alias{crosstab}
 \title{Generate contingency table with relevant counts and percentages}
 \usage{
-crosstab(study_tbl, outcome, exposure = NULL, tbt_flag = FALSE)
+crosstab(study_tbl, outcome, exposure = NULL, include_missing = FALSE)
 }
 \arguments{
 \item{study_tbl}{A data.frame or tbl containing the exposure and outcome variables to be analyzed, as specified in the \code{exposure} and \code{outcome} arguments.}
 
 \item{outcome}{A string specifying the binary outcome variable in \code{study_tbl}. By default, the variable's highest level is treated as the "event". To specify a different level as the "event," use the form \code{"var_name == var_level"}.}
 
-\item{exposure}{A string specifying the binary exposure variable in \code{study_tbl}. By default, the variable's highest level is treated as "exposed". To specify a different level as "exposed," use the form \code{"var_name == var_level"}.}
+\item{exposure}{(Optional) A string specifying the binary exposure variable in \code{study_tbl}. Default is \code{NULL}. If a variable is specified, the variable's highest level is treated as "exposed" by default. To specify a different level as "exposed," use the form \code{"var_name == var_level"}.}
 
-\item{tbt_flag}{A logical flag. If \code{TRUE}, then output will be supplied to \code{\link[=twobytwo]{twobytwo()}}; otherwise, output returned to user.}
+\item{include_missing}{A logical flag. If \code{TRUE}, then analysis will treat missing values as a distinct category and tabulate accordingly. Default value is \code{FALSE}.}
 }
 \value{
-If \code{tbt_flag} is \code{TRUE}, a list containing:
-\itemize{
-\item \code{outcome_name}: Name of the outcome variable.
-\item \code{exposure_name}: Name of the exposure variable (if \code{exposure} is not \code{NULL}).
-\item \code{out_var}: Outcome variable represented as a factor variable.
-\item \code{exp_var}: Exposure variable represented as a factor variable (if \code{exposure} is not \code{NULL})
-\item \code{outbin}: Outcome variable represented as a logical variable where \code{outbin} is \code{TRUE} if variable value is equal to the value of interest.
-\item \code{expbin}: Outcome variable represented as a logical variable where \code{outbin} is \code{TRUE} if variable value is equal to the value of interest (if \code{exposure} is not \code{NULL}).
-\item \code{contingency_table}: A list containing:
-\itemize{
-\item \code{data}: The 1 x 2 \code{table} of counts tabulating the \code{outcome} column (if \code{exposure} is \code{NULL}) or the 2 x 2 \code{table} of counts, cross-tabulating the \code{exposure} and \code{outcome} columns.
-\item \code{row_prop}: A matrix of row-wise proportions of \code{data} (if \code{exposure} is not \code{NULL}).
-\item \code{col_prop}: A matrix of column-wise proportions of \code{data} (if \code{exposure} is not \code{NULL}).
-\item \code{cell_prop}: A matrix of cell-wise proportions of \code{data}.
-If \code{tbt_flag} is \code{FALSE}, an object of class \code{antcon}, which is a list containing:
-}
-\item \code{data}: The 1 x 2 \code{table} of counts tabulating the \code{outcome} column (if \code{exposure} is \code{NULL}) or the 2 x 2 \code{table} of counts, cross-tabulating the \code{exposure} and \code{outcome} columns.
-\item \code{row_prop}: A matrix of row-wise proportions of \code{data} (if \code{exposure} is not \code{NULL}).
-\item \code{col_prop}: A matrix of column-wise proportions of \code{data} (if \code{exposure} is not \code{NULL}).
-\item \code{cell_prop}: A matrix of cell-wise proportions of \code{data}.
-}
+An object of class \code{antcon}, which is a list containing:
+- \code{data}: The 1 x 2 \code{table} of counts tabulating the \code{outcome} column (if \code{exposure} is \code{NULL}) or the 2 x 2 \code{table} of counts, cross-tabulating the \code{exposure} and \code{outcome} columns.
+- \code{row_prop}: A matrix of row-wise proportions of \code{data} (if \code{exposure} is not \code{NULL}).
+- \code{col_prop}: A matrix of column-wise proportions of \code{data} (if \code{exposure} is not \code{NULL}).
+- \code{cell_prop}: A matrix of cell-wise proportions of \code{data}.
 }
 \description{
 Generate contingency table with relevant counts and percentages
 }
 \examples{
-inst/examples/examples-crosstab.R
+set.seed(42)
+dat <- data.frame(
+  sex = c("Male", "Female")[rbinom(100, 1, 0.52) + 1],
+  disease = c("Sick", "Cured")[rbinom(100, 1, 0.2) + 1],
+  smoking_status = sample(c("Current", "Former", "Never"),
+                          100,
+                          replace = TRUE,
+                          prob = c(0.4, 0.15, 0.45))
+)
+
+# Use crosstab() for standalone cross-tabulation
+result_disease <- crosstab(study_tbl = dat,
+                           outcome = "disease",
+                           exposure = "sex")
+summary(result_disease)
+
+result_smoking <- crosstab(study_tbl = dat,
+                           outcome = "smoking_status",
+                           exposure = "sex")
+summary(result_smoking)
+
+# Also works for tabulation of a single variable
+result_sex <- crosstab(study_tbl = dat,
+                       outcome = "sex",
+                       exposure = NULL)
+summary(result_sex)
+
+# Option to include missing values as separate category
+dat$disease[sample(1:100, 10)] <- NA
+result_smoking_missing <- crosstab(study_tbl = dat,
+                                   outcome = "smoking_status",
+                                   exposure = "sex",
+                                   include_missing = TRUE)
+summary(result_smoking_missing)
 }
