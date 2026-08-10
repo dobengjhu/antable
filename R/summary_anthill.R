@@ -85,7 +85,7 @@ print.summary.anthill <- function(x,
     ci_list <- c(ci_list, list(x$p_exposure_ci))
   }
 
-  of_interest <- lapply(var_list, function(x) x[2L])
+  of_interest <- lapply(var_list, function(x) levels(x)[2L])
 
   prev_rowname <- mapply(function(x, y) paste0("P(", x, " = ", y, ")"),
                          varname_list,
