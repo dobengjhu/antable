@@ -72,7 +72,7 @@ print.summary.anthill <- function(x,
 
   # ── prevalences ───────────────────────────────────────────────────────────
   section("PREVALENCE")
-  browser()
+
   var_list <- list(x$outcome)
   varname_list <- list(x$outcome_name)
   p_vec <- c(x$p_outcome)
