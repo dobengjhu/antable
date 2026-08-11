@@ -56,10 +56,10 @@ print.summary.anthill <- function(x,
   cat("ANTABLE SUMMARY\n")
   rule()
 
-  cat(sprintf("Outcome  : %s (n = %d)\n",
-              x$outcome_name,  length(x$outcome)))
-  if ("exposure" %in% names(x)) cat(sprintf("Exposure : %s (n = %d)\n",
-                                            x$exposure_name, length(x$exposure)))
+  cat(sprintf("Outcome  : %s\n",
+              x$outcome_name))
+  if ("exposure" %in% names(x)) cat(sprintf("Exposure : %s\n",
+                                            x$exposure_name))
   cat("\n")
 
   # ── contingency table ──────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ print.summary.anthill <- function(x,
 
   # ── prevalences ───────────────────────────────────────────────────────────
   section("PREVALENCE")
-
+  browser()
   var_list <- list(x$outcome)
   varname_list <- list(x$outcome_name)
   p_vec <- c(x$p_outcome)
