@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# antable
+# antable <img src="man/figures/logo.png" align="right" height="139" alt="antable hex logo" />
 
 <!-- badges: start -->
 
@@ -36,8 +36,8 @@ summary(result)
 #> ═══════════════ 
 #> ANTABLE SUMMARY
 #> ═══════════════ 
-#> Outcome  : disease (n = 100)
-#> Exposure : sex (n = 100)
+#> Outcome  : disease
+#> Exposure : sex
 #> 
 #> CONTINGENCY TABLE───────────────────────────────────── 
 #> 
@@ -60,9 +60,9 @@ summary(result)
 #> 
 #> PREVALENCE──────────────────────────────────────────── 
 #> 
-#>                    Estimate      Wald 95% CI
-#> P(disease = Cured)     0.83 [0.7564, 0.9036]
-#> P(sex = Female)        0.49 [0.3920, 0.5880]
+#>                   Estimate      Wald 95% CI
+#> P(disease = Sick)     0.83 [0.7564, 0.9036]
+#> P(sex = Male)         0.49 [0.3920, 0.5880]
 #> 
 #> EXPOSURE-OUTCOME ASSOCIATION────────────────────────── 
 #> 
@@ -93,8 +93,8 @@ summary(result)
 #> ═══════════════ 
 #> ANTABLE SUMMARY
 #> ═══════════════ 
-#> Outcome  : disease (n = 100)
-#> Exposure : sex (n = 100)
+#> Outcome  : disease
+#> Exposure : sex
 #> 
 #> CONTINGENCY TABLE───────────────────────────────────── 
 #> 
@@ -198,7 +198,7 @@ summary(result_disease_only)
 #> ═══════════════ 
 #> ANTABLE SUMMARY
 #> ═══════════════ 
-#> Outcome  : disease (n = 100)
+#> Outcome  : disease
 #> 
 #> CONTINGENCY TABLE───────────────────────────────────── 
 #> 
@@ -212,8 +212,8 @@ summary(result_disease_only)
 #> 
 #> PREVALENCE──────────────────────────────────────────── 
 #> 
-#>                    Estimate      Wald 95% CI
-#> P(disease = Cured)     0.83 [0.7564, 0.9036]
+#>                   Estimate      Wald 95% CI
+#> P(disease = Sick)     0.83 [0.7564, 0.9036]
 
 result_smoking_status_only <- crosstab(study_tbl = data,
                                        outcome = "smoking_status",
@@ -288,8 +288,8 @@ summary(result_disease_twobytwo)
 #> ═══════════════ 
 #> ANTABLE SUMMARY
 #> ═══════════════ 
-#> Outcome  : disease (n = 81)
-#> Exposure : sex (n = 81)
+#> Outcome  : disease
+#> Exposure : sex
 #> 
 #> CONTINGENCY TABLE───────────────────────────────────── 
 #> 
@@ -312,9 +312,9 @@ summary(result_disease_twobytwo)
 #> 
 #> PREVALENCE──────────────────────────────────────────── 
 #> 
-#>                    Estimate      Wald 95% CI
-#> P(disease = Cured)   0.8395 [0.7596, 0.9194]
-#> P(sex = Female)      0.4691 [0.3605, 0.5778]
+#>                   Estimate      Wald 95% CI
+#> P(disease = Sick)   0.8395 [0.7596, 0.9194]
+#> P(sex = Male)       0.4691 [0.3605, 0.5778]
 #> 
 #> EXPOSURE-OUTCOME ASSOCIATION────────────────────────── 
 #> 
