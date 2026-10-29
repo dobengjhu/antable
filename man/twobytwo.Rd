@@ -74,7 +74,7 @@ An object of class \code{anthill}, which is a list containing:
 \item When \code{test_method} is \code{"z"} or \code{"chisq"}, contains columns \code{statistic} (the test statistic), \code{df} (the degrees of freedom for the test), and \code{p-value} (the two-sided p-value for the test).
 \item When \code{test_method} is \code{"fisher_exact"}, contains columns \code{or_estimate} (the estimated odds ratio) and \code{p_value} (the two-sided p-value for the test).
 }
-\item \code{test_result}: The underlying test object returned by the function corresponding to \code{test_method} (e.g., an \code{htest} object from \code{\link[stats:prop.test]{stats::prop.test()}}).
+\item \code{test_result}: The underlying test object returned by the function corresponding to \code{test_method} (e.g., an \code{htest} object from \code{\link[stats:chisq.test]{stats::chisq.test()}}).
 }
 \item \code{alpha}: The value of \code{alpha}.
 }

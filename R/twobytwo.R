@@ -4,7 +4,7 @@
 #' then calculates relevant one-sample and two-sample summary statistics and
 #' inference artifacts.
 #'
-#' @importFrom stats qnorm qbeta fisher.test chisq.test prop.test
+#' @importFrom stats qnorm qbeta fisher.test chisq.test
 #' @param study_tbl A data.frame or tbl containing the exposure and outcome variables to be analyzed, as specified in the `exposure` and `outcome` arguments.
 #' @param exposure (Optional) A string specifying the binary exposure variable in `study_tbl`. Default is `NULL`. If a variable is specified, the variable's highest level is treated as "exposed" by default. To specify a different level as "exposed," use the form `"var_name == var_level"`.
 #' @param outcome A string specifying the binary outcome variable in `study_tbl`. By default, the variable's highest level is treated as the "event". To specify a different level as the "event," use the form `"var_name == var_level"`.
@@ -45,7 +45,7 @@
 #'        - `test_summary`: A data.frame summarizing the key findings from `test_method`.
 #'            - When `test_method` is `"z"` or `"chisq"`, contains columns `statistic` (the test statistic), `df` (the degrees of freedom for the test), and `p-value` (the two-sided p-value for the test).
 #'            - When `test_method` is `"fisher_exact"`, contains columns `or_estimate` (the estimated odds ratio) and `p_value` (the two-sided p-value for the test).
-#'        - `test_result`: The underlying test object returned by the function corresponding to `test_method` (e.g., an `htest` object from [stats::prop.test()]).
+#'        - `test_result`: The underlying test object returned by the function corresponding to `test_method` (e.g., an `htest` object from [stats::chisq.test()]).
 #'    - `alpha`: The value of `alpha`.
 #'
 #' @export
@@ -159,6 +159,12 @@ twobytwo <- function(study_tbl,
         or_estimate = test_result$estimate,
         p_value = test_result$p.value
       )
+    } else if (test_method == "z") {
+      test_result <- two_prop_z(contingency_table$data, ...)
+      p_test <- data.frame(
+        statistic = test_result$statistic,
+        p_value = test_result$p.value
+      )
     } else {
       extra_args <- list(...)
       relevant_args <- extra_args[names(extra_args) %in% names(formals(chisq.test))]
@@ -168,16 +174,6 @@ twobytwo <- function(study_tbl,
 
       if (test_method == "chisq") {
         test_result <- do.call(chisq.test,
-                               c(list(x = contingency_table$data),
-                                 relevant_args))
-
-        p_test <- data.frame(
-          statistic = test_result$statistic,
-          df = test_result$parameter,
-          p_value = test_result$p.value
-        )
-      } else if (test_method == "z") {
-        test_result <- do.call(prop.test,
                                c(list(x = contingency_table$data),
                                  relevant_args))
 

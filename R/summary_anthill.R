@@ -162,11 +162,10 @@ if ("compare_test" %in% names(x)) {
   } else if (test_method == "z") {
     section("TWO-PROPORTION Z TEST")
     stat <- x$compare_test$test_summary$statistic
-    df   <- x$compare_test$test_summary$df
     pval <- x$compare_test$test_summary$p_value
     p_str <- if (pval < 0.001) "< 0.001" else fmt(pval, 3)
-    cat(sprintf("Z = %s,  df = %d, p = %s\n",
-                fmt(stat), df, p_str))
+    cat(sprintf("Z = %s,  p = %s\n",
+                fmt(stat), p_str))
   }
 }
 
