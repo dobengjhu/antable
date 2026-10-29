@@ -81,7 +81,8 @@ two_prop_z <- function(x,
          null.value  = c("risk difference" = 0),
          conf.int    = cint,
          alternative = alternative,
-         data.name   = DNAME),
+         data.name   = DNAME,
+         method = "Two-sample z test for proportions (unpooled SE)"),
     class = "htest"
   )
 }
