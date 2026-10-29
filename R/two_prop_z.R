@@ -12,8 +12,6 @@
 #' @param alternative "two.sided", "less", or "greater" (for exposed - unexposed).
 #' @param conf.level Confidence level for the interval.
 #' @return An object of class "htest".
-#'
-#' @export
 two_prop_z <- function(x,
                        n = NULL,
                        alternative = c("two.sided", "less", "greater"),
