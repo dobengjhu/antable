@@ -73,7 +73,7 @@ summary(result)
 #> 
 #> TWO-PROPORTION Z TEST───────────────────────────────── 
 #> 
-#> Z = 0.5017,  df = 1, p = 0.479
+#> Z = 0.7118,  p = 0.477
 ```
 
 Sometimes variable values are not ordered in a manner that aligns with
@@ -130,7 +130,7 @@ summary(result)
 #> 
 #> TWO-PROPORTION Z TEST───────────────────────────────── 
 #> 
-#> Z = 0.5017,  df = 1, p = 0.479
+#> Z = 0.7118,  p = 0.477
 ```
 
 In cases where the user is solely interested in cross-tabulation of
@@ -325,7 +325,7 @@ summary(result_disease_twobytwo)
 #> 
 #> TWO-PROPORTION Z TEST───────────────────────────────── 
 #> 
-#> Z = 3.533,  df = 1, p = 0.0602
+#> Z = 1.973,  p = 0.0485
 
 result_disease_crosstab <- crosstab(study_tbl = data_na,
                                     outcome = "disease")
